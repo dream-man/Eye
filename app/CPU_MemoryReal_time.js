@@ -1,7 +1,13 @@
-require(['reader','Chart','Utils'],function(read,chart,uitls){
+require(['reader','drawLine'],function(read,line){
 	//read.read("./cpu_mem.json");
-	read.initData("http://192.168.81.8:8080/cpu_mem.json",function()
+	read.initData("/data/cpu_mem.json",function()
 	{
+		var ctx1 = document.getElementById("cpu").getContext("2d");
+		var ctx2 = document.getElementById("mem").getContext("2d");
+		line.drawLine(ctx1,cpudata,"red","CPU",1000);
+		line.drawLine(ctx2,memdata,"green","Memory",1000);
+		//line.drawLine(color.color.green,memdata,1000);
+		/*
 		var config = {
 			type: 'line',
 			data: {
@@ -112,9 +118,9 @@ require(['reader','Chart','Utils'],function(read,chart,uitls){
 				ConfigDate.shidt();
 				memConfigData.shift();
 			}
-			*/
+			
 			window.myLine.update(10);
 		};
-		setInterval(Update,1000);			
+		setInterval(Update,1000);	*/		
 	});
 });

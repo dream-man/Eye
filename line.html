@@ -1,16 +1,18 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 
 <head>
     <title>Line Chart</title>
 	<script src="js/require.js"></script>
+	<!-- <script data-main="app/app.js" src="js/require.js"></script> -->
 	<script>
 		require.config({
+			baseUrl: "./",
 			paths: {				
 				reader: "app/reader",
-				Utils: "app/Utils",
 				Chart:  "js/Chart.bundle",
-				jquery: "js/jquery.min"			
+				drawLine:  "app/Utils/drawLine",
+				jquery: "js/jquery.min"				
 			}
 		});
 	</script>
@@ -26,7 +28,8 @@
 <body>
 <meta http-equiv="Access-Control-Allow-Origin" content="*">
     <div style="width:100%;">
-        <canvas id="canvas"></canvas>
+        <canvas id="cpu"></canvas>
+		<canvas id="mem"></canvas>
 		<script src="app/CPU_MemoryReal_time.js"></script>
     </div>
     <br> <br>
