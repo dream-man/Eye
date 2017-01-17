@@ -9,10 +9,14 @@
 		require.config({
 			baseUrl: "./",
 			paths: {				
-				reader: "app/reader",
+				reader: "app/Utils/reader",
 				Chart:  "js/Chart.bundle",
-				drawLine:  "app/Utils/drawLine",
-				jquery: "js/jquery.min"				
+				draw : "app/Utils/draw",
+				jquery: ["js/jquery.min","http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"]
+			},
+			shim: {
+				'draw': ['Chart'],
+				'reader':   ['jquery']
 			}
 		});
 	</script>
@@ -26,12 +30,17 @@
 </head>
 
 <body>
-<meta http-equiv="Access-Control-Allow-Origin" content="*">
+<script src="app/Real_Time.js"></script>
     <div style="width:100%;">
         <canvas id="cpu"></canvas>
+		<br>
 		<canvas id="mem"></canvas>
-		<script src="app/CPU_MemoryReal_time.js"></script>
+		<br>
+		<br>
     </div>
+	<div style="width:45%; margin: 0 auto;">
+		<canvas id="part"></canvas>
+	</div>
     <br> <br>
 </body>
 

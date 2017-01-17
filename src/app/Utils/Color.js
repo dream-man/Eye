@@ -9,7 +9,16 @@ define(function (){
 		purple: 'rgb(153, 102, 255)',
 		grey: 'rgb(231,233,237)'
 	};
+	var eachColor = function(index)
+	{
+		var i = 0;
+		for(var key in colorset) {			
+			if(i++ === index)
+				return colorset[key];			
+		}
+	}
 	return {
-		color: colorset
+		color: colorset,
+		eachColor:eachColor
 	}
 });
