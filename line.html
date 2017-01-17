@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Line Chart</title>
+	<script src="js/require.js"></script>
+	<script>
+		require.config({
+			paths: {				
+				reader: "app/reader",
+				Utils: "app/Utils",
+				Chart:  "js/Chart.bundle",
+				jquery: "js/jquery.min"			
+			}
+		});
+	</script>
+    <style>
+    canvas{
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    </style>
+</head>
+
+<body>
+<meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <div style="width:100%;">
+        <canvas id="canvas"></canvas>
+		<script src="app/CPU_MemoryReal_time.js"></script>
+    </div>
+    <br> <br>
+</body>
+
+</html>
