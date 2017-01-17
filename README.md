@@ -1,7 +1,7 @@
 关于这个project的结构
 
 data : source data
-TianShan-Eye
+Eye
 	app :
 		Utils: 
 		*.js : 
