@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8"> 
+    <title>Line Chart</title>	
+	<script type="text/javascript" src="js/require.js"></script>
+	<!-- <script data-main="app/main.js" src="js/require.js"></script> -->
+	<script type="text/javascript" src="app/Eye.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/Eye.css">
+	<script>
+		require.config({
+		baseUrl: "./",
+		paths: {				
+			jquery: ["js/jquery.min","http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"],
+			reader: "app/Utils/reader",
+			http:   "app/Utils/http",
+			tabler: "app/Utils/tabler",
+			Chart:  "js/Chart.bundle",
+			draw : "app/Utils/draw"
+		}
+	});
+	</script>
+    <style>
+    canvas{
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    </style>
+</head>
+
+<body>
+	<div id="tableId"></div>
+	<div id="tableId2"></div>
+	<br>
+    <div style="width:100%;">
+        <canvas id="cpu"></canvas>
+		<br>
+		<canvas id="mem"></canvas>
+		<br>
+		<br>
+    </div>
+	<div style="width:45%; margin: 0 auto;">
+		<canvas id="part"></canvas>
+	</div>
+    <br> <br>
+</body>
+
+</html>
