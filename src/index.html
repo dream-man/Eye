@@ -4,19 +4,22 @@
 	<meta charset="UTF-8"> 
     <title>Line Chart</title>	
 	<script type="text/javascript" src="js/require.js"></script>
-	<!-- <script data-main="app/main.js" src="js/require.js"></script> -->
-	<script type="text/javascript" src="app/Eye.js"></script>
+	<script type="text/javascript" src="js/app/Eye.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/Eye.css">
 	<script>
-		require.config({
-		baseUrl: "./",
+	require.config({
+		baseUrl: "./js",
 		paths: {				
-			jquery: ["js/jquery.min","http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"],
+			jquery: ["jquery.min","http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"],
 			reader: "app/Utils/reader",
 			http:   "app/Utils/http",
 			tabler: "app/Utils/tabler",
-			Chart:  "js/Chart.bundle",
-			draw : "app/Utils/draw"
+			Chart:  "Chart.bundle",
+			draw :  "app/Utils/draw"
+		},
+		shim: {
+			'draw': ['Chart'],
+			'reader':   ['jquery']
 		}
 	});
 	</script>

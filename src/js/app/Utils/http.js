@@ -10,6 +10,7 @@ define(['jquery'],function ($){
 		if (instanceId == undefined) {
 			this.instanceId = 0
 		}
+		/*
 		this.xmlHttp = null;
 		try {// Firefox, Opera 8.0+, Safari, IE7
 			this.xmlHttp = new XMLHttpRequest();
@@ -23,14 +24,33 @@ define(['jquery'],function ($){
 				return;
 			}
 		}
+		*/
 		this.url = "http://" + this.ipPort + "/" + this.getWay + "/" + serviceType + "/" + this.instanceId + "/" + varname + "?";
 	}
 	
 	http.prototype.GET = function(cb){
+		/*
 		this.xmlHttp.open("GET", this.url, true);
 		this.xmlHttp.send(null);
 		this.xmlHttp.onreadystatechange = cb;
+		*/
+		return $.get(
+			this.url,
+			cb
+			// function(data,state){
+				// console.log((new Date).getTime() + " response " + ": " + data +  "state:" + state);
+			// }
+		);
 	}
+	
+	http.prototype.POST = function(cb){
+		return $.post(
+			this.url,
+			cb,
+			"*"
+		);
+	}
+	
 	/*
 	var getData = function (cb,serviceType, varname, ipPort, getWay, instanceId) {
 		if (ipPort == undefined) {

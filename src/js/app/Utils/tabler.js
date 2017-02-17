@@ -11,15 +11,15 @@ define(['jquery'],function ($){
 			this.name = name;
 			this.data = JsonData[name];
 		}
-
+		this.rows = 0;         //记录表格的行数
+		this.columns = 0;      //记录表格的最大列数
 		//大表格控制显示
-		this.MaxRows = 13;
-		this.OUTRANGE = false;
-		this.CurRow = 0;
+		this.MaxRows = 13;     //每一次加载表格的最大行数
+		this.OUTRANGE = false; //每一次加载的时候超过this.MaxRows时 为true
+		this.CurRow = 0;       //记录当前加载到的行号
+		//bind 到 html的div
 		this.table = $("<table border=\"1\">");
-		this.table.appendTo($(this.id));
-		this.rows = 0;
-		this.columns = 0;
+		this.table.appendTo($(this.id));		
 	}
 	
 	//创建表格
@@ -41,6 +41,7 @@ define(['jquery'],function ($){
 				this.rows = data[cell].length
 			}
 			var th = $("<th>" + cell + "</th>");
+			th.attr("title","点击在下可以按我" + cell + "排序哦!");
 			th.appendTo(trHeader);
 			this.columns++;
 		}
@@ -70,6 +71,7 @@ define(['jquery'],function ($){
 		if(this.OUTRANGE){
 			//3: 添加表尾tfoot，用来扩展大表格
 			var tfoot = $("<tfoot></tfoot>");
+			tfoot.attr("title","点击在下有惊喜哦！");
 			$("<td>...</td>").attr("colspan",this.columns).appendTo(tfoot);
 			tfoot.appendTo(table);
 		}		
@@ -77,43 +79,48 @@ define(['jquery'],function ($){
 		
 		//4: 封闭table标签
 		$(this.id).append("</table>");
-		console.log("table:" + this.table[0].innerHTML);
 		//添加事件处理函数
 		this.click();
 		this.dblclick();
 	}
 	
 	//展开大表格的剩下部分(如果需要的话 this.OUTRANGE == true)
-	table.prototype.updateTable = function(){
-		var that = this;
-		that.OUTRANGE == false;
+	table.prototype.updateBody = function(){
+		this.OUTRANGE == false;
 		var tbody = $("<tbody></tbody>");
-		for(var i = that.CurRow;i < that.rows; ++i,++that.CurRow){
+		var num = 0;
+		for(var i = this.CurRow;i < this.rows; ++num,++i,++this.CurRow){
 			var tr = $("<tr></tr>");
-			for(var cell in that.data){//遍历对象属性名
-				var td = $("<td>" + that.data[cell][i] + "</td>");
-				td.appendTo(tr);
-			}
-			//添加删除控制的窗口
-			$("<td>Yes</td>").css("color","red").appendTo(tr);
+			if(num < this.MaxRows){				
+				for(var cell in this.data){//遍历对象属性名
+					var td = $("<td>" + this.data[cell][i] + "</td>");
+					td.appendTo(tr);
+				}
+				//添加删除控制的窗口
+				$("<td>Yes</td>").css("color","red").appendTo(tr);
+			}else{
+				this.OUTRANGE = true;
+				break;
+			}		
 			tr.appendTo(tbody);
 		}
-		tbody.appendTo(that.table);
+		tbody.appendTo(this.table);
 		//如果整个表加载完 删除扩展表尾
-		if(that.OUTRANGE || that.CurRow == that.rows){
+		if(this.CurRow == this.rows){
 			$("table tfoot").remove();
 		}
 	}
 	
+	//在调用sort后要用这个函数来吧table的body刷新
 	table.prototype.sortBody = function(){
-		var that = this;
 		var data = this.data;
+		//定位table body 然后删除他
 		$(this.id).find("table tbody").remove();
-		//2: 加表体内容  tbody
+		//重新加数据更新后的表体内容  tbody
 		var tbody = $("<tbody></tbody>");
-		for(var i = 0;i < this.rows; ++i,++this.CurRow){
+		for(var i = 0;i < this.rows; ++i){
 			var tr = $("<tr></tr>");
-			if(i < this.MaxRows){				
+			if(i < this.CurRow){
 				for(var cell in data){//遍历对象属性名
 					var td = $("<td>" + data[cell][i] + "</td>");
 					td.appendTo(tr);
@@ -125,20 +132,22 @@ define(['jquery'],function ($){
 				break;
 			}
 			tr.appendTo(tbody);
-			tbody.appendTo(that.table);
+			tbody.appendTo(this.table);
 		}
 		//处理超过 MaxRows 的行，新增扩展控制行
-		if(this.OUTRANGE){
+		if($("table tfoot") == undefined && this.CurRow == this.rows){
 			//3: 添加表尾tfoot，用来扩展大表格
 			var tfoot = $("<tfoot></tfoot>");
 			$("<td>...</td>").attr("colspan",this.columns).appendTo(tfoot);
-			tfoot.appendTo(table);
+			tfoot.appendTo(this.table);
 		}		
 	}
 	
 	//单元格的事件(单击)
 	table.prototype.click = function(){
 		var that = this;
+		
+		//点击表体(body)获取点击的数据
 		$(this.id).find("table tbody tr").each(function(){
 			var tdArr = $(this).children();
 			tdArr.mousedown(function(e){
@@ -164,21 +173,31 @@ define(['jquery'],function ($){
 				}			
 			});			
 		});
+		
+		//点击表尾 扩展未显示的部分表格
 		$(this.id).find("table tfoot").each(function(){
 			var tdArr = $(this).children();
 			tdArr.click(function(){
-				that.updateTable();
+				that.updateBody();
 			});			
 		});
+		
+		//点击表头的单元格,按照该列排序
 		$(this.id).find("table thead tr").each(function(){
-			var tdArr = $(this).children();
-			tdArr.click(function(){
+			var thArr = $(this).children();
+			thArr.click(function(){
 				console.log("cell number:" + this.cellIndex + " cell text:" + this.innerText + "will sort");
 				that.sort(this.innerText);
 			});			
 		});
 
+		/*	
+		$(this.id).find("table caption").mousemove(function (event) {
+				console.log("cell number:" + this.cellIndex + " cell text:" + this.innerText + "will sort");
+		});
+		*/
 	}
+	
 	//行间事件(双击)
 	table.prototype.dblclick = function(){
 		var that = this;

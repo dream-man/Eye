@@ -155,7 +155,7 @@ define(['app/Utils/Color','Chart','app/Utils/DateFormat'],function (Color){
 				//this.config.data.labels.push([]);
 				if(this.dataTitle[di] == undefined) this.dataTitle[di] = "Undefined";
 				this.config.data.datasets[di].label = this.dataTitle[di];
-				if(this.color[di] == undefined) this.color[di] = "black";
+				if(this.color[di] == undefined) this.color[di] = Color.getColor(di);
 				this.config.data.datasets[di].backgroundColor = this.color[di];	
 				this.config.data.datasets[di].borderColor = this.color[di];
 				this.CurDataPostion[di] = 0;

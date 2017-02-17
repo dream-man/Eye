@@ -7,18 +7,14 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 	Table.create();
 	Table.search("SEACnnnnnNy_PG");
 	
-	/*
 	//测试连接TianShan中的服务 绘制表格
 	var Http = new httper.http("rtspProxy","icTable");
-	Http.GET(function(){
-		if (this.readyState == 4 && this.status == 200) {
-			console.log("response " + this.responseText)
-			var Table = new tabler.table("tableId",this.responseText);
-			Table.create();
-			Table.search("SEACnnnnnNy_PG");
-		}
+	Http.GET(function(data,state){
+		console.log((new Date).getTime() + " response " + ": " + data + " state:" + state);
+		var Table = new tabler.table("tableId2",data);
+		Table.create();
+		Table.search("SEACnnnnnNy_PG");
 	});
-	*/
 	
 	//line
 	//var result  = reader.readJson("/fvar/data/cpu_mem.json");
@@ -28,8 +24,8 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 	var data = []
 	var data3 = []
 	var data4 = []
-	var Render = new drawer.render(ctx1,"line",[data,data3,data4],["cpu","mem","bindwith"],["red","green","blue"]);
-	Render.draw();	
+	var Render = new drawer.render(ctx1,"line",[data,data3,data4],["cpu","mem","bindwith"]);
+	Render.draw();
 	setInterval(
 		 function(){
 			 Render.update([reader.random(100),reader.random(100),reader.random(100)]);			 
@@ -48,7 +44,7 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 		 },
 	1000);
 	*/
-	/*
+
 	//测试连接TianShan中的服务
 	var ctxRtsp = document.getElementById("mem").getContext("2d");
 	var rtspdata = [0];
@@ -56,17 +52,17 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 	rtspRender.draw();
 	
 	var Http = new httper.http("rtspProxy","rtspProxy-Statistics-Average-Process-Latency");
-	setInterval(function(){
-		Http.GET(function(){
-			if (this.readyState == 4 && this.status == 200) {
-				console.log("response " + this.responseText)
-				var data = parseFloat(this.responseText.split(":")[1]);
+	var timer = setInterval(function(){
+		Http.GET(function(data,state){
+				console.log((new Date).getTime() + " response " + ": " + data + " state:" + state);
+				var data = parseFloat(data.split(":")[1]);				
 				rtspRender.update([data+reader.random(1)]);
-			}
+		}).fail(function(state){			
+			clearInterval(timer);
+			console.log("fail: " + state.statusText + " status: " + state.status + "  timer will be close");
 		});
 	},
-	1000);
-	*/
+	1000);	
 	
 	//pie
 	// var CircleData = reader.readJson("/fvar/data/part.json");
