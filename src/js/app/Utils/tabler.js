@@ -42,6 +42,8 @@ define(['jquery'],function ($){
 			}
 			var th = $("<th>" + cell + "</th>");
 			th.attr("title","点击在下可以按我" + cell + "排序哦!");
+			//为表头添加排序控制选项
+			var tselect = $("<select style=\"border:none;\"><option>&and;</option><option>&or;</option></select>").appendTo(th);
 			th.appendTo(trHeader);
 			this.columns++;
 		}
@@ -146,7 +148,6 @@ define(['jquery'],function ($){
 	//单元格的事件(单击)
 	table.prototype.click = function(){
 		var that = this;
-		
 		//点击表体(body)获取点击的数据
 		$(this.id).find("table tbody tr").each(function(){
 			var tdArr = $(this).children();
@@ -183,19 +184,26 @@ define(['jquery'],function ($){
 		});
 		
 		//点击表头的单元格,按照该列排序
-		$(this.id).find("table thead tr").each(function(){
+		$(this.id).find("table thead tr th").each(function(){
 			var thArr = $(this).children();
-			thArr.click(function(){
-				console.log("cell number:" + this.cellIndex + " cell text:" + this.innerText + "will sort");
-				that.sort(this.innerText);
-			});			
+			var sortcell = thArr.parent();
+			thArr.change(function(){
+				var text = thArr.find("option:selected").text();
+				var index = thArr.get(0).selectedIndex;
+				console.log("selected " + text + " will sort");
+				switch(index){
+					case 0:
+						that.sort(sortcell[0].innerText,true);
+					break;
+					case 1:
+						that.sort(sortcell[0].innerText,false);
+					break;
+					default:
+						console.log("uunknown" + index);
+					break;
+				}
+			});
 		});
-
-		/*	
-		$(this.id).find("table caption").mousemove(function (event) {
-				console.log("cell number:" + this.cellIndex + " cell text:" + this.innerText + "will sort");
-		});
-		*/
 	}
 	
 	//行间事件(双击)
