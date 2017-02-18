@@ -12,14 +12,17 @@ define(['jquery'],function ($){
 			this.data = JsonData[name];
 		}
 		this.rows = 0;         //记录表格的行数
-		this.columns = 0;      //记录表格的最大列数
+		this.columns = Object.getOwnPropertyNames(this.data).length; //记录表格的最大列数
+		//this.columns = 0;      //记录表格的最大列数
 		//大表格控制显示
 		this.MaxRows = 13;     //每一次加载表格的最大行数
 		this.OUTRANGE = false; //每一次加载的时候超过this.MaxRows时 为true
 		this.CurRow = 0;       //记录当前加载到的行号
+		this.canSortCol = [];
 		//bind 到 html的div
 		this.table = $("<table border=\"1\">");
-		this.table.appendTo($(this.id));		
+		this.table.appendTo($(this.id));
+		//this.setSortCol([1,3,5]);
 	}
 	
 	//创建表格
@@ -29,13 +32,13 @@ define(['jquery'],function ($){
 		var data = this.data;
 		
 		//样式设置
-		$("<caption>" + this.name + "</caption>").appendTo(table);
 		table.addClass("tableCss");
 		
 		//1: 加表头
 		var thead = $("<thead></thead>");
 		var trHeader = $("<tr></tr>");
 		trHeader.appendTo(thead);
+		var curCol = 0
 		for(var cell in data){//遍历对象属性名
 			if(this.rows < data[cell].length){
 				this.rows = data[cell].length
@@ -43,9 +46,11 @@ define(['jquery'],function ($){
 			var th = $("<th>" + cell + "</th>");
 			th.attr("title","点击在下可以按我" + cell + "排序哦!");
 			//为表头添加排序控制选项
-			var tselect = $("<select style=\"border:none;\"><option>&and;</option><option>&or;</option></select>").appendTo(th);
+			if(this.canSortCol.length == 0 || this.canSortCol.indexOf(curCol) != -1){
+				var tselect = $("<select style=\"border:none;\"><option>&and;</option><option>&or;</option></select>").appendTo(th);
+			}
 			th.appendTo(trHeader);
-			this.columns++;
+			curCol++;
 		}
 		//添加行删除控制的表头
 		$("<th>delete</th>").appendTo(trHeader);
@@ -79,7 +84,11 @@ define(['jquery'],function ($){
 		}		
 		tbody.appendTo(table);
 		
-		//4: 封闭table标签
+		//4: caption 设置
+		var tcap = $("<caption>" + this.name + "</caption>");
+		tcap.appendTo(table);
+
+		//5: 封闭table标签
 		$(this.id).append("</table>");
 		//添加事件处理函数
 		this.click();
@@ -276,7 +285,19 @@ define(['jquery'],function ($){
 		}
 		this.sortBody();
 	}
-	
+	//设置可排序的列号。注意：已经将起始列号规范为从1开始
+	table.prototype.setSortCol = function (col){
+		if(col instanceof Array){
+			for(var i = 0;i < col.length;++i){
+				if(col[i] < this.columns){
+					this.canSortCol.push(col[i]-1);
+				}
+			}
+		}else{
+			this.canSortCol.push(col);
+		}
+	}
+
 	return{
 		table:table
 	};
