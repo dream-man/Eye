@@ -84,5 +84,21 @@
 	Table.search("SEACnnnnnNy_PG");
 	```
 
+## 必须要的工具
+
+- 第三方:
+	- require.js : 模块加载管理工具
+	- chart.js   : canvas绘制依赖库
+	- jquery.js  ：图表, http, file的处理工具
+- 自定义工具:
+
+|模块            |     |依赖      |
+|:--------------:|:----|:-------:|
+|Color.js        | =>  |null     |
+|DateFormat.js   | =>  |null     |
+|draw.js         | =>  |chart.js |
+|http.js         | =>  |jquery.js|
+|reader.js       | =>  |jquery.js|
+|tabler.js       | =>  |jquery.js|
 
  [1]:http://eloquentjavascript.net/1st_edition/chapter8.html "oop"
