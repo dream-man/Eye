@@ -7,11 +7,11 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 	var Table = new tabler.table("tableId",tab);
 	Table.create();
 	Table.search("SEACnnnnnNy_PG");
-	
 	//测试连接TianShan中的服务 绘制表格
-	var Http = new httper.http("rtspProxy","icTable");
-	Http.GET(function(data,state){
-		console.log((new Date).getTime() + " response " + ": " + data + " state:" + state);
+	var Http1 = new httper.http({service:"rtspProxy",varname:"icTable"});
+
+	Http1.GET(function(data){
+		console.log((new Date).getTime() + " response " + ": " + data);
 		var Table = new tabler.table("tableId2",data);
 		Table.create();
 		Table.search("SEACnnnnnNy_PG");
@@ -54,22 +54,43 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 
 	//测试连接TianShan中的服务
 	var ctxRtsp = document.getElementById("mem").getContext("2d");
-	var rtspdata = [0];
-	var rtspRender = new drawer.render(ctxRtsp,"line",[rtspdata],["rtspdata"],["red"]);
+	var rtspdata1 = [0];
+	var rtspdata2 = [0];
+	var rtspdata3 = [0];
+	var rtspRender = new drawer.render(ctxRtsp,"line",[rtspdata1,rtspdata2,rtspdata3],["rtspdata1","rtspdata2","rtspdata3"]);
 	rtspRender.draw();
-	
-	var Http = new httper.http("rtspProxy","rtspProxy-Statistics-Average-Process-Latency");
-	var timer = setInterval(function(){
-		Http.GET(function(data,state){
-				console.log((new Date).getTime() + " response " + ": " + data + " state:" + state);
-				var data = parseFloat(data.split(":")[1]);				
-				rtspRender.update([data+reader.random(1)]);
-		}).fail(function(state){//失败处理，关闭update定时器			
-			console.log("fail: " + state.statusText + " status: " + state.status + "  timer will be close");
-			clearInterval(timer);
-		});
+	var Http = new httper.http([{
+		service:"rtspProxy",
+		varname:"rtspProxy-Statistics-Total-Succeeded-Request-Count"
 	},
-	1000);	
+	{
+		service:"rtspProxy",
+		varname:"rtspProxy-Statistics-Average-Process-Latency"
+	},
+	{
+		service:"rtspProxy",
+		varname:"rtspProxy-Statistics-Request-Count"
+	}
+	]);
+	var timer = setInterval(function(){
+		Http.GET(
+			function(result){
+				console.log((new Date).getTime() + " response " + ": " + result);
+				var len = result.length;
+				var data = [];
+				var i = 0;
+				while(i < len){
+					data.push(parseFloat(result[i].split(":")[1]) +reader.random(1))
+					i++;
+				}
+				rtspRender.update(data);
+			},
+			function(reason){//失败处理，关闭update定时器
+				console.log("fail: " + reason + "  timer will be close");
+				clearInterval(timer);
+			});
+		},
+	1000);
 	
 	//pie 圆形图系列
 	// var CircleData = reader.readJson("/fvar/data/part.json");

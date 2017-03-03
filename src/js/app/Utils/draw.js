@@ -183,7 +183,6 @@ define(['app/Utils/Color','Chart','app/Utils/DateFormat'],function (Color){
 		lazy:  update the data's time default:1000ms
 	 */	
 	render.prototype.drawLine = function(){
-		//cpu and memory	
 		var srcData = this.data;
 		var curPos = this.CurDataPostion;
 		var dataSize = this.data.length;
@@ -209,7 +208,6 @@ define(['app/Utils/Color','Chart','app/Utils/DateFormat'],function (Color){
 	}
 	
 	render.prototype.lineUpdate = function(){
-		//cpu and memory	
 		var srcData = this.data;
 		var curPos = this.CurDataPostion;
 		var dataSize = this.data.length;
@@ -295,7 +293,11 @@ define(['app/Utils/Color','Chart','app/Utils/DateFormat'],function (Color){
 				Adatas.push(Adata);
 			}
 			for(var i = 0; i < this.data.length;++i){
-				this.data[i].push(Adatas[i]);
+				if(Adatas[i] == undefined){
+					this.data[i].push(this.data[i][this.MaxDataLength]);
+				}else{
+					this.data[i].push(Adatas[i]);
+				}
 			}
 			this.lineUpdate();
 			break;

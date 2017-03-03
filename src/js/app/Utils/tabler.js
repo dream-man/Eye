@@ -196,15 +196,24 @@ define(['jquery'],function ($){
 		$(this.id).find("table thead tr th").each(function(){
 			var thArr = $(this).children();
 			var sortcell = thArr.parent();
+			var thead = sortcell.parent();
+			sortcell.mouseenter(function(){
+				thArr.triggerHandler('click');
+			});
 			thArr.change(function(){
+				thead.each(function(){
+					var th = $(this).children();
+					th.css("background-color", "");
+				});
+				sortcell.css("background-color","#B2E0FF");
 				var text = thArr.find("option:selected").text();
 				var index = thArr.get(0).selectedIndex;
 				console.log("selected " + text + " will sort");
 				switch(index){
-					case 0:
+					case 0://升序
 						that.sort(sortcell[0].innerText,true);
 					break;
-					case 1:
+					case 1://降序
 						that.sort(sortcell[0].innerText,false);
 					break;
 					default:
@@ -233,7 +242,13 @@ define(['jquery'],function ($){
 	table.prototype.search = function(key,hide){
 		if(hide == undefined){hide = false;}	
 		if(hide){
-			$("table tbody tr").hide().filter(":contains('"+ key +"')").css("background-color","#B2E0FF").show(); //行高亮
+			var res = $("table tbody tr").filter(":contains('"+ key +"')");
+			if(res.length != 0){
+				$("table tbody tr").hide().filter(":contains('"+ key +"')").css("background-color","#B2E0FF").show(); //行高亮
+				$("table tbody tr td").filter(":contains('"+ key +"')").css("background-color","#99CC33"); //关键字单元格高亮
+			}
+			else
+				console.log("search " + key + " is not exist!");
 		}else{
 			$("table tbody tr").filter(":contains('"+ key +"')").css("background-color","#B2E0FF"); //行高亮
 			$("table tbody tr td").filter(":contains('"+ key +"')").css("background-color","#99CC33"); //关键字单元格高亮
@@ -287,7 +302,11 @@ define(['jquery'],function ($){
 	}
 	//设置可排序的列号。注意：已经将起始列号规范为从1开始
 	table.prototype.setSortCol = function (col){
-		if(col instanceof Array){
+		if(col == undefined){
+			for(var i = 0;i < this.columns;++i){
+				this.canSortCol.push(i);
+			}
+		}else if(col instanceof Array){
 			for(var i = 0;i < col.length;++i){
 				if(col[i] < this.columns){
 					this.canSortCol.push(col[i]-1);
