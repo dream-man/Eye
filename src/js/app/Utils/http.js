@@ -1,16 +1,16 @@
 define(function(){
-
+		
 	// valid url
 	// http://ip:port/getway/serverType/instanceId/varname?xxxx
 	/*
-	config = {
+	config = {		
 		way: "svar"
 		service:"rtspProxy",
 		instance:"0",
 		varname:"rtspProxy-Statistics-Total-Succeeded-Request-Count",
 	}
 	*/
-	// @ ip:port :
+	// @ ip:port : 
 	// @ getway  : 控制获取的数据的方法：svar: 获取Tianshan中服务的数据ZQSnmp模块处理
 	//                                   fvar: 获取文件
 	//                                   mvar: 获取主机的主要信息,如cpu  memory
@@ -21,25 +21,37 @@ define(function(){
 			this.addr = "192.168.81.78:10001";
 		}else{
 			if(locate.split(":").length != 2){ //no port
-				this.addr = locate + ":" + this.port;
+				this.addr = locate + ":" + this.port + "/";
 			}else{
-				this.addr = locate;
+				if(locate[locate.length - 1] == '/'){
+					locate.length--;
+				}
+				this.addr = locate;				
 			}
 		}
 		this.urls = [];
 		this.result = [];
 		this.reason = [];
+		this.getWay = "";
+		this.serviceType = "";
+		this.instanceId = "";
+		this.varname = "";
 		this.set(config);
 	}
-
+		
 	http.prototype.updateUrl = function(){
 		if (this.getWay == undefined) {
-			this.getWay = "svar"
+			this.getWay = "/svar"
 		}
-		if (this.instanceId == undefined) {
-			this.instanceId = 0
-		}
-		this.urls.push(this.protocol + this.addr + "/" + this.getWay + "/" + this.serviceType + "/" + this.instanceId + "/" + this.varname + "?");
+		if( this.getWay == "/svar" )
+		{
+			if (this.instanceId == undefined) {
+				this.instanceId = "/0"
+			}
+			this.urls.push(this.protocol + this.addr + this.getWay + this.serviceType + this.instanceId + this.varname + "?");
+		}else{//非svar模式，@instanceId 均不需要，故设置为空
+			this.urls.push(this.protocol + this.addr + this.getWay + this.serviceType + this.instanceId + "?" + this.varname);
+		}		
 	}
 	
 	http.prototype.set = function(config){
@@ -55,16 +67,16 @@ define(function(){
 			for(key in configs[i]){
 				switch(key){
 					case "service":
-					this.serviceType = configs[i][key];
+					this.serviceType = "/" + configs[i][key];
 					break;
 					case "varname":
-					this.varname = configs[i][key];
+					this.varname = "/" + configs[i][key];
 					break;
 					case "instance":
-					this.instanceId = configs[i][key];
+					this.instanceId = "/" + configs[i][key];
 					break;
 					case "way":
-					this.getWay = configs[i][key];
+					this.getWay = "/" + configs[i][key];
 					break;
 					default:
 					break;
@@ -100,7 +112,7 @@ define(function(){
 				break;
 				case 3:
 				//console.log("current State: " + 3);
-				break;
+				break;				
 				case 4:
 					if(this.status == 200){
 						console.log(this.responseText);
@@ -119,11 +131,13 @@ define(function(){
 			*/
 			if(this.readyState == 4){
 				if(this.status == 200){
-					console.log(this.responseText);
-					that.result.push(this.responseText);
+					console.log(this.responseText);					
+					that.result.length = 0;
+					that.result.push(that.handleResp(this.responseText));
 					delete xmlHttp;  //收到返回结果后手动删除
 					xmlHttp = null;
 				}else {
+					that.reason.length = 0;
 					that.reason.push("readyState: " + this.readyState + " status: " + this.status);
 					delete xmlHttp;  //收到返回结果后手动删除
 					xmlHttp = null;
@@ -133,7 +147,18 @@ define(function(){
 		xmlHttp.open("GET", url, true);
 		xmlHttp.send(null);
 	}
-
+	
+	http.prototype.handleResp = function(responseText){
+		if(this.getWay == "/mvar"){
+			var service = this.serviceType.substr(1);
+			if(this.varname != ""){
+				var varname = this.varname.substr(1);
+				return JSON.parse(responseText)[service][varname];
+			}
+		}
+		return responseText;
+	}
+	
 	// @success : 数据获取成功后回调的函数
 	// @fail    : 数据获取失败回调的函数，用于调用者的其他事务的处理
 	http.prototype.GET = function(success,fail){
@@ -146,18 +171,20 @@ define(function(){
 			curUrl++;
 		}
 		if(that.reason.length != 0){
-			fail(that.reason);
 			clearInterval(timer);
-			that.reason.length = 0;
+			if(fail != undefined){
+				fail(that.reason);	
+			}			
 		}
 		if(that.result.length != 0){
-			success(that.result);
 			clearInterval(timer);
-			that.result.length = 0;
+			if(success !=  undefined){
+				success(that.result);
+			}						
 		}
 		},100);
 	}
-
+	
 	http.prototype.POST = function(callback){
 		/*
 		return $.post(

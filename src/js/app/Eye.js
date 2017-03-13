@@ -2,41 +2,63 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 	
 	//table 表格系列
 	var tab = '{"icTable": {"icIndex": [6,2,3],"icIndex2": [2,1,5],"icChannelName": ["SEACnnnnnNx_PG","SEACnnnnnNy_PG","haha"],"icUsedBandwidth": [0,9,3],"icTotalBandwidth": [0,7,4],"icRunningSessCount": [6,0,4],"icStatus": ["n/a","n/a","hehe"]}}';
+
 	
 	//测试自定义数据 绘制表格
 	var Table = new tabler.table("tableId",tab);
 	Table.create();
 	Table.search("SEACnnnnnNy_PG");
-	//测试连接TianShan中的服务 绘制表格
-	var Http1 = new httper.http({service:"rtspProxy",varname:"icTable"});
 
+	//测试连接服务程序 绘制表格
+	var Http1 = new httper.http({service:"rtspProxy",varname:"icTable"});
 	Http1.GET(function(data){
-		console.log((new Date).getTime() + " response " + ": " + data);
-		var Table = new tabler.table("tableId2",data);
-		Table.create();
-		Table.search("SEACnnnnnNy_PG");
-	});
+	console.log((new Date).getTime() + " response " + ": " + data);
+	var Table = new tabler.table("tableId2",data);
+	Table.create();
+	Table.search("SEACnnnnnNy_PG");});
 	
+	var Table = new tabler.table("tableId2");
+	Table.create();
+	var Http2 = new httper.http({way:"mvar",service:"ram"},"192.168.81.71:10080");
+	var timerH = setInterval(function(){
+		Http2.GET(function(data){
+			console.log((new Date).getTime() + " response " + ": " + data);
+			Table.update(data);
+		},
+		function(reason){//失败处理，关闭update定时器			
+			console.log("fail: " + reason + "  timer will be close");
+			clearInterval(timerH);
+		});
+	},1000);
+	
+	//测试读取csv文件绘制表格
+	var csv = 'sessId,byteoffset,timeoffset,duration\n"JSNBF",4421342,4823,3214\n"D3sDLO",423424423,53523,424253453';
+	var TableCsv = new tabler.table("tableId3",csv);
+	TableCsv.create();
 	//line 线状图系列
-	//var result  = reader.readJson("/fvar/data/cpu_mem.json");
 	
 	//测试多组数据绘制在一张图的情况
-	var ctx1 = document.getElementById("cpu").getContext("2d");
+	var ctx1 = document.getElementById("canvas1").getContext("2d");
 	var data = []
 	var data3 = []
 	var data4 = []
-	var Render = new drawer.render(ctx1,"line",[data,data3,data4],["cpu","mem","bindwith"]);
+	var free = []
+	var Render = new drawer.render(ctx1,"line",[data,data3,data4,free],["cpu","mem","bindwith","free"]);
 	Render.draw();
-	var i = 0;
+	var cur = 0;
+	var Http3 = new httper.http({way:"mvar",service:"ram",varname:"free"},"192.168.81.71:10080");
 	setInterval(
 		 function(){
-			 i++;
-			 if(i <= 10){
-				Render.update([reader.random(100),reader.random(100),reader.random(100)]);
-			 }else{
-				 Render.update([reader.random(100),reader.random(100)]);
-			 }
-		 },
+			Http3.GET(function(data){
+				console.log((new Date).getTime() + " response " + ": " + data);
+				cur = parseFloat(JSON.parse(data[0]))/100000;
+			},
+			function(reason){//失败处理，关闭update定时器			
+				console.log("fail: " + reason + "  timer will be close");
+				clearInterval(timerH);
+			});
+			Render.update([reader.random(100),reader.random(100),reader.random(100),cur]);
+		},
 	1000);
 	
 	/*
@@ -51,9 +73,9 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 		 },
 	1000);
 	*/
-
-	//测试连接TianShan中的服务
-	var ctxRtsp = document.getElementById("mem").getContext("2d");
+	
+	//测试连接服务程序	
+	var ctxRtsp = document.getElementById("canvas2").getContext("2d");
 	var rtspdata1 = [0];
 	var rtspdata2 = [0];
 	var rtspdata3 = [0];
@@ -82,10 +104,10 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 				while(i < len){
 					data.push(parseFloat(result[i].split(":")[1]) +reader.random(1))
 					i++;
-				}
+				}				
 				rtspRender.update(data);
 			},
-			function(reason){//失败处理，关闭update定时器
+			function(reason){//失败处理，关闭update定时器			
 				console.log("fail: " + reason + "  timer will be close");
 				clearInterval(timer);
 			});

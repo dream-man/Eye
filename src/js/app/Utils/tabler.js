@@ -2,37 +2,74 @@ define(['jquery'],function ($){
 	
 	//构造函数
 	var table = function table(tableId,tableJson) {
-		this.Json = tableJson;
 		this.id = '#'+tableId;
-		this.data = null;
-		var JsonData = JSON.parse(tableJson);		
-		//分离表名和数据
-		for(var name in JsonData){//遍历对象属性名 
-			this.name = name;
-			this.data = JsonData[name];
+		//bind 到 html的div
+		this.table = $("<table border=\"1\">");
+		//样式设置
+		this.table.addClass("tableCss");
+		if(tableJson != undefined)
+		{
+			this.init(tableJson)
 		}
-		this.rows = 0;         //记录表格的行数
+	}
+	table.prototype.init = function(tableJson){
+		this.Json = tableJson;
+		this.data = null;		
+		var JsonData = null;
+		try {
+			JsonData = JSON.parse(tableJson);
+			//分离表名和数据
+			for(var name in JsonData){//遍历对象属性名 
+				this.name = name;
+				this.data = JsonData[name];
+			}	
+		}catch (e) {
+			var csv = this.csv2json(tableJson);
+			this.name = "Udp-State-Dump";
+			this.data = csv[this.name];
+		}
 		this.columns = Object.getOwnPropertyNames(this.data).length; //记录表格的最大列数
-		//this.columns = 0;      //记录表格的最大列数
+		this.rows = 0;         //记录表格的行数
 		//大表格控制显示
 		this.MaxRows = 13;     //每一次加载表格的最大行数
 		this.OUTRANGE = false; //每一次加载的时候超过this.MaxRows时 为true
 		this.CurRow = 0;       //记录当前加载到的行号
 		this.canSortCol = [];
-		//bind 到 html的div
-		this.table = $("<table border=\"1\">");
+		//清空原来的表格中的数据
+		$(this.id).find("table").empty();
 		this.table.appendTo($(this.id));
-		//this.setSortCol([1,3,5]);
+		this.setSortCol([1,3,5]);
+	}
+		
+	table.prototype.csv2json = function(data){
+		var out = new Object();
+		var outarr = [];
+		var sdata = data.split("\n");
+		for(var i = 0;i < sdata.length;i++){
+			outarr.push(sdata[i].split(","));
+		}
+		var head = outarr[0];		
+		for(var j = 0;j < head.length;j++){	
+			var row = [];
+			for(var i = 1;i < outarr.length;i++){
+				row.push(outarr[i][j]);	
+			}
+			out[head[j]] = row;
+		}
+		return {"Udp-State-Dump":out};
 	}
 	
 	//创建表格
 	table.prototype.create = function(){		
 		
 		var table = this.table;
+		if(this.data == undefined)
+			return;
 		var data = this.data;
 		
-		//样式设置
-		table.addClass("tableCss");
+		//0: caption 设置
+		var tcap = $("<caption>" + this.name + "</caption>");
+		tcap.appendTo(table);
 		
 		//1: 加表头
 		var thead = $("<thead></thead>");
@@ -44,10 +81,10 @@ define(['jquery'],function ($){
 				this.rows = data[cell].length
 			}
 			var th = $("<th>" + cell + "</th>");
-			th.attr("title","点击在下可以按我" + cell + "排序哦!");
+			//th.attr("title","点击在下可以按我" + cell + "排序哦!");
 			//为表头添加排序控制选项
 			if(this.canSortCol.length == 0 || this.canSortCol.indexOf(curCol) != -1){
-				var tselect = $("<select style=\"border:none;\"><option>&and;</option><option>&or;</option></select>").appendTo(th);
+				var tselect = $("<select><option>&and;</option><option>&or;</option></select>").addClass("select").appendTo(th);
 			}
 			th.appendTo(trHeader);
 			curCol++;
@@ -63,6 +100,7 @@ define(['jquery'],function ($){
 			var tr = $("<tr></tr>");
 			if(i < this.MaxRows){				
 				for(var cell in data){//遍历对象属性名
+				
 					var td = $("<td>" + data[cell][i] + "</td>");
 					td.appendTo(tr);
 				}
@@ -83,11 +121,6 @@ define(['jquery'],function ($){
 			tfoot.appendTo(table);
 		}		
 		tbody.appendTo(table);
-		
-		//4: caption 设置
-		var tcap = $("<caption>" + this.name + "</caption>");
-		tcap.appendTo(table);
-
 		//5: 封闭table标签
 		$(this.id).append("</table>");
 		//添加事件处理函数
@@ -151,7 +184,7 @@ define(['jquery'],function ($){
 			var tfoot = $("<tfoot></tfoot>");
 			$("<td>...</td>").attr("colspan",this.columns).appendTo(tfoot);
 			tfoot.appendTo(this.table);
-		}		
+		}	
 	}
 	
 	//单元格的事件(单击)
@@ -200,7 +233,7 @@ define(['jquery'],function ($){
 			sortcell.mouseenter(function(){
 				thArr.triggerHandler('click');
 			});
-			thArr.change(function(){
+			thArr.change(function(){				
 				thead.each(function(){
 					var th = $(this).children();
 					th.css("background-color", "");
@@ -299,6 +332,9 @@ define(['jquery'],function ($){
 			}
 		}
 		this.sortBody();
+		//添加事件处理函数
+		this.click();
+		this.dblclick();
 	}
 	//设置可排序的列号。注意：已经将起始列号规范为从1开始
 	table.prototype.setSortCol = function (col){
@@ -316,7 +352,13 @@ define(['jquery'],function ($){
 			this.canSortCol.push(col);
 		}
 	}
-
+	
+	table.prototype.update = function (newtableJson)
+	{
+		this.init(newtableJson);
+		this.create();
+	}
+	
 	return{
 		table:table
 	};

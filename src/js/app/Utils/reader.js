@@ -11,8 +11,7 @@ define(['jquery'],function ($){
 		});	
 		return rt;
 	};
-	
-	
+		
 	var random = function(range){
 		return Math.random()*range;
 	}
@@ -21,4 +20,4 @@ define(['jquery'],function ($){
 		readJson:readJson,
 		random:random,
 	};
-});
+}); 
