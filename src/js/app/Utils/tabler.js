@@ -100,7 +100,6 @@ define(['jquery'],function ($){
 			var tr = $("<tr></tr>");
 			if(i < this.MaxRows){				
 				for(var cell in data){//遍历对象属性名
-				
 					var td = $("<td>" + data[cell][i] + "</td>");
 					td.appendTo(tr);
 				}
@@ -151,8 +150,11 @@ define(['jquery'],function ($){
 		tbody.appendTo(this.table);
 		//如果整个表加载完 删除扩展表尾
 		if(this.CurRow == this.rows){
-			$("table tfoot").remove();
+			$(this.id).find("table tfoot").remove();
 		}
+		//添加事件处理函数
+		this.click();
+		this.dblclick();
 	}
 	
 	//在调用sort后要用这个函数来吧table的body刷新
