@@ -11,48 +11,66 @@ define(['jquery'],function ($){
 		{
 			this.init(tableJson)
 		}
+		this.CurSortRow = 1;
+		this.DefaultUorD = true;
+		//大表格控制显示
+		this.MaxRows = 13;     //每一次加载表格的最大行数		
 	}
+	
 	table.prototype.init = function(tableJson){
+		if(tableJson  instanceof Array)
+			tableJson = tableJson[0];
 		this.Json = tableJson;
 		this.data = null;		
 		var JsonData = null;
+		this.theads = [];
+		this.rows = 0;         //记录表格的行数
 		try {
 			JsonData = JSON.parse(tableJson);
+			//JsonData = $.parseJSON(tableJson);
 			//分离表名和数据
 			for(var name in JsonData){//遍历对象属性名 
 				this.name = name;
 				this.data = JsonData[name];
-			}	
+			}
 		}catch (e) {
 			var csv = this.csv2json(tableJson);
 			this.name = "Udp-State-Dump";
 			this.data = csv[this.name];
 		}
+		for(var key in this.data){//遍历对象属性名
+			this.theads.push(key);
+		}
 		this.columns = Object.getOwnPropertyNames(this.data).length; //记录表格的最大列数
-		this.rows = 0;         //记录表格的行数
-		//大表格控制显示
-		this.MaxRows = 13;     //每一次加载表格的最大行数
-		this.OUTRANGE = false; //每一次加载的时候超过this.MaxRows时 为true
-		this.CurRow = 0;       //记录当前加载到的行号
+		this.OUTRANGE = false; //每一次加载的时候超过this.MaxRows时 为true		
 		this.canSortCol = [];
+		this.CurRow = 0;       //记录当前加载到的行号
 		//清空原来的表格中的数据
 		$(this.id).find("table").empty();
 		this.table.appendTo($(this.id));
 		this.setSortCol([1,3,5]);
 	}
 		
-	table.prototype.csv2json = function(data){
+	table.prototype.csv2json = function(data){		
 		var out = new Object();
 		var outarr = [];
-		var sdata = data.split("\n");
+		if(data instanceof Array)
+			data = data[0];
+		var sdata = data.split("\n");//设置每一行的分隔符
+		this.rows = sdata.length - 2;
 		for(var i = 0;i < sdata.length;i++){
+			sdata[i] = sdata[i].replace(/\s/g,'').replace(/\"/g,'');
 			outarr.push(sdata[i].split(","));
 		}
 		var head = outarr[0];		
 		for(var j = 0;j < head.length;j++){	
 			var row = [];
 			for(var i = 1;i < outarr.length;i++){
-				row.push(outarr[i][j]);	
+				if(!isNaN(outarr[i][j])){
+					row.push(parseFloat(outarr[i][j]));	
+				}else{
+					row.push(outarr[i][j]);	
+				}
 			}
 			out[head[j]] = row;
 		}
@@ -61,12 +79,13 @@ define(['jquery'],function ($){
 	
 	//创建表格
 	table.prototype.create = function(){		
-		
 		var table = this.table;
 		if(this.data == undefined)
 			return;
-		var data = this.data;
-		
+		var data = this.data;		
+		if(this.CurSortRow != 0){
+			this.sort(this.theads[this.CurSortRow-1],this.DefaultUorD);			
+		}
 		//0: caption 设置
 		var tcap = $("<caption>" + this.name + "</caption>");
 		tcap.appendTo(table);
@@ -86,11 +105,14 @@ define(['jquery'],function ($){
 			if(this.canSortCol.length == 0 || this.canSortCol.indexOf(curCol) != -1){
 				var tselect = $("<select><option>&and;</option><option>&or;</option></select>").addClass("select").appendTo(th);
 			}
+			//th.addClass("grid");
+			if(this.theads[this.CurSortRow-1] == cell)
+				th.css("background-color","#B2E0FF");
 			th.appendTo(trHeader);
 			curCol++;
 		}
 		//添加行删除控制的表头
-		$("<th>delete</th>").appendTo(trHeader);
+		$("<th>delete</th>").addClass("grid").appendTo(trHeader);
 		this.columns++;
 		thead.appendTo(table);
 				
@@ -98,13 +120,14 @@ define(['jquery'],function ($){
 		var tbody = $("<tbody></tbody>");
 		for(var i = 0;i < this.rows; ++i,++this.CurRow){
 			var tr = $("<tr></tr>");
-			if(i < this.MaxRows){				
+			if(i < this.MaxRows){	
 				for(var cell in data){//遍历对象属性名
 					var td = $("<td>" + data[cell][i] + "</td>");
-					td.appendTo(tr);
+					td.addClass("grid");
+					td.appendTo(tr);	
 				}
 				//添加删除控制的窗口
-				$("<td>Yes</td>").css("color","red").appendTo(tr);
+				$("<td>Yes</td>").addClass("grid").css("color","red").appendTo(tr);
 			}else{
 				this.OUTRANGE = true;
 				break;
@@ -118,7 +141,7 @@ define(['jquery'],function ($){
 			tfoot.attr("title","点击在下有惊喜哦！");
 			$("<td>...</td>").attr("colspan",this.columns).appendTo(tfoot);
 			tfoot.appendTo(table);
-		}		
+		}	
 		tbody.appendTo(table);
 		//5: 封闭table标签
 		$(this.id).append("</table>");
@@ -128,13 +151,13 @@ define(['jquery'],function ($){
 	}
 	
 	//展开大表格的剩下部分(如果需要的话 this.OUTRANGE == true)
-	table.prototype.updateBody = function(){
+	table.prototype.expandBody = function(){
 		this.OUTRANGE == false;
 		var tbody = $("<tbody></tbody>");
 		var num = 0;
 		for(var i = this.CurRow;i < this.rows; ++num,++i,++this.CurRow){
 			var tr = $("<tr></tr>");
-			if(num < this.MaxRows){				
+			if(num < this.MaxRows){	
 				for(var cell in this.data){//遍历对象属性名
 					var td = $("<td>" + this.data[cell][i] + "</td>");
 					td.appendTo(tr);
@@ -144,17 +167,15 @@ define(['jquery'],function ($){
 			}else{
 				this.OUTRANGE = true;
 				break;
-			}		
+			}	
 			tr.appendTo(tbody);
 		}
 		tbody.appendTo(this.table);
+		this.MaxRows *= 2;
 		//如果整个表加载完 删除扩展表尾
 		if(this.CurRow == this.rows){
 			$(this.id).find("table tfoot").remove();
 		}
-		//添加事件处理函数
-		this.click();
-		this.dblclick();
 	}
 	
 	//在调用sort后要用这个函数来吧table的body刷新
@@ -173,9 +194,6 @@ define(['jquery'],function ($){
 				}
 				//添加删除控制的窗口
 				$("<td>Yes</td>").css("color","red").appendTo(tr);
-			}else{
-				this.OUTRANGE = true;
-				break;
 			}
 			tr.appendTo(tbody);
 			tbody.appendTo(this.table);
@@ -215,16 +233,25 @@ define(['jquery'],function ($){
 					break;
 					default:
 					break;
-				}			
-			});			
+				}	
+			});	
 		});
 		
 		//点击表尾 扩展未显示的部分表格
 		$(this.id).find("table tfoot").each(function(){
 			var tdArr = $(this).children();
 			tdArr.click(function(){
-				that.updateBody();
-			});			
+				that.expandBody();
+			});	
+		});
+		
+		$(this.id).find("table thead tr").each(function(){
+			var thArr = $(this).children();	
+			thArr.click(function(){
+				console.log("cell number:" + this.cellIndex + " cell text:" + this.innerText);
+				that.CurSortRow = this.cellIndex + 1;
+				that.DefaultUorD = !that.DefaultUorD;
+			});
 		});
 		
 		//点击表头的单元格,按照该列排序
@@ -232,24 +259,22 @@ define(['jquery'],function ($){
 			var thArr = $(this).children();
 			var sortcell = thArr.parent();
 			var thead = sortcell.parent();
-			sortcell.mouseenter(function(){
-				thArr.triggerHandler('click');
-			});
-			thArr.change(function(){				
+			thArr.change(function(){	
 				thead.each(function(){
 					var th = $(this).children();
 					th.css("background-color", "");
-				});
-				sortcell.css("background-color","#B2E0FF");
+				});	
 				var text = thArr.find("option:selected").text();
 				var index = thArr.get(0).selectedIndex;
 				console.log("selected " + text + " will sort");
 				switch(index){
 					case 0://升序
 						that.sort(sortcell[0].innerText,true);
+						that.sortBody();
 					break;
 					case 1://降序
 						that.sort(sortcell[0].innerText,false);
+						that.sortBody();
 					break;
 					default:
 						console.log("uunknown" + index);
@@ -292,7 +317,9 @@ define(['jquery'],function ($){
 		
 	//UorD: true -> Up ;false -> Down
 	//这个函数将更新this.data的值，最后调用sortBody即可刷新表格
-	table.prototype.sort = function(keyword,UorD){ 
+	table.prototype.sort = function(keyword,UorD){
+		if(keyword == undefined)
+			return;
 		if(UorD == undefined){UorD = false;}
 		var data = this.data;
 		var sorted = 0;
@@ -333,11 +360,8 @@ define(['jquery'],function ($){
 				}
 			}
 		}
-		this.sortBody();
-		//添加事件处理函数
-		this.click();
-		this.dblclick();
 	}
+	
 	//设置可排序的列号。注意：已经将起始列号规范为从1开始
 	table.prototype.setSortCol = function (col){
 		if(col == undefined){

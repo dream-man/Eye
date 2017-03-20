@@ -40,12 +40,12 @@ define(function(){
 	}
 		
 	http.prototype.updateUrl = function(){
-		if (this.getWay == undefined) {
+		if (this.getWay == "" || this.getWay == undefined) {
 			this.getWay = "/svar"
 		}
 		if( this.getWay == "/svar" )
 		{
-			if (this.instanceId == undefined) {
+			if (this.instanceId == "" || this.instanceId == undefined) {
 				this.instanceId = "/0"
 			}
 			this.urls.push(this.protocol + this.addr + this.getWay + this.serviceType + this.instanceId + this.varname + "?");
@@ -70,7 +70,7 @@ define(function(){
 					this.serviceType = "/" + configs[i][key];
 					break;
 					case "varname":
-					this.varname = "/" + configs[i][key];
+					this.varname = configs[i][key];
 					break;
 					case "instance":
 					this.instanceId = "/" + configs[i][key];

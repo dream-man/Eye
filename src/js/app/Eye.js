@@ -8,33 +8,51 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 	var Table = new tabler.table("tableId",tab);
 	Table.create();
 	Table.search("SEACnnnnnNy_PG");
-
-	//测试连接服务程序 绘制表格
-	var Http1 = new httper.http({service:"rtspProxy",varname:"icTable"});
+	/*
+	//测试连接程序中的服务 绘制表格
+	var Http1 = new httper.http({way:"svar",service:"rtspProxy",varname:"icTable"});
 	Http1.GET(function(data){
 	console.log((new Date).getTime() + " response " + ": " + data);
-	var Table = new tabler.table("tableId2",data);
-	Table.create();
-	Table.search("SEACnnnnnNy_PG");});
-	
-	var Table = new tabler.table("tableId2");
-	Table.create();
-	var Http2 = new httper.http({way:"mvar",service:"ram"},"192.168.81.71:10080");
-	var timerH = setInterval(function(){
+	var Table1 = new tabler.table("tableId2",data);
+	Table1.create();
+	Table1.search("SEACnnnnnNy_PG");});
+	*/
+	var Table2 = new tabler.table("tableId2");
+	Table2.create();
+	var Http2 = new httper.http({way:"mvar",service:"nic"},"192.168.81.71:10080");
+	var timer2 = setInterval(function(){
 		Http2.GET(function(data){
 			console.log((new Date).getTime() + " response " + ": " + data);
-			Table.update(data);
+			Table2.update(data[0]);
 		},
 		function(reason){//失败处理，关闭update定时器			
 			console.log("fail: " + reason + "  timer will be close");
-			clearInterval(timerH);
+			clearInterval(timer2);
 		});
 	},1000);
 	
-	//测试读取csv文件绘制表格
+	/*
+	//测试读取csv变量绘制表格
 	var csv = 'sessId,byteoffset,timeoffset,duration\n"JSNBF",4421342,4823,3214\n"D3sDLO",423424423,53523,424253453';
 	var TableCsv = new tabler.table("tableId3",csv);
 	TableCsv.create();
+	*/
+	//测试读取csv文件绘制表格
+	var csv;
+	var Httpcsv = new httper.http({way:"fvar",service:"data/kk",varname:"session2.csv"});
+	var TableCsv = new tabler.table("tableId3",csv);
+	TableCsv.create();
+	var timercsv = setInterval(function(){
+		Httpcsv.GET(function(data){
+			console.log((new Date).getTime() + " response " + ": " + data);
+			TableCsv.update(data);
+		},
+		function(reason){//失败处理，关闭update定时器			
+			console.log("fail: " + reason + "  timer will be close");
+			clearInterval(timercsv);
+		});
+	},500);
+	
 	//line 线状图系列
 	
 	//测试多组数据绘制在一张图的情况
@@ -47,7 +65,7 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 	Render.draw();
 	var cur = 0;
 	var Http3 = new httper.http({way:"mvar",service:"ram",varname:"free"},"192.168.81.71:10080");
-	setInterval(
+	var timer3 = setInterval(
 		 function(){
 			Http3.GET(function(data){
 				console.log((new Date).getTime() + " response " + ": " + data);
@@ -55,15 +73,15 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 			},
 			function(reason){//失败处理，关闭update定时器			
 				console.log("fail: " + reason + "  timer will be close");
-				clearInterval(timerH);
+				clearInterval(timer3);
 			});
 			Render.update([reader.random(100),reader.random(100),reader.random(100),cur]);
 		},
 	1000);
+
 	
-	/*
 	//测试一组自定义数据绘制在一张图的情况
-	var ctx1 = document.getElementById("cpu").getContext("2d");
+	var ctx1 = document.getElementById("canvas2").getContext("2d");
 	var data = []
 	var Render = new drawer.render(ctx1,"line",data,"cpu","red");
 	Render.draw();	
@@ -72,9 +90,9 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 			 Render.update(reader.random(100));			 
 		 },
 	1000);
-	*/
 	
-	//测试连接服务程序	
+	/*
+	//测试连接服务程序中的服务	
 	var ctxRtsp = document.getElementById("canvas2").getContext("2d");
 	var rtspdata1 = [0];
 	var rtspdata2 = [0];

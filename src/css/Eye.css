@@ -1,11 +1,20 @@
 .tableCss{
-	table-layout:solid #000 1px;
+	table-layout: fixed;
 	text-align: center;
 	margin: auto;
 	border-spacing: 1px;
 	border-collapse:collapse;
 	padding: 2px;
+	width:80%;
 }
+
+.grid{
+	-o-text-overflow:ellipsis;
+	text-overflow:ellipsis;
+	overflow:hidden;
+	white-space:nowrap;
+}
+
 .line{
 	background: green;
 }
