@@ -5,6 +5,7 @@
     <title>Line Chart</title>	
 	<script type="text/javascript" src="js/require.js"></script>
 	<script type="text/javascript" src="js/app/Eye.js"></script>
+	<script type="text/javascript" src="index.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/Eye.css">
 	<script>
 	require.config({
@@ -23,30 +24,38 @@
 		}
 	});
 	</script>
-    <style>
-    canvas{
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        -ms-user-select: none;
-    }
-    </style>
 </head>
 
 <body>
-	<div id="tableId"></div>
-	<div id="tableId2"></div>
-	<br>
-    <div style="width:100%;">
-        <canvas id="cpu"></canvas>
-		<br>
-		<canvas id="mem"></canvas>
-		<br>
-		<br>
-    </div>
-	<div style="width:45%; margin: 0 auto;">
-		<canvas id="part"></canvas>
+	<div class="container">  
+		<div class="header">  
+			<h1>Eye</h1>  
+		</div>
+		<div class="sidebar" id="sidectl">
+			<li class="l" id="lr">Left-Right</li>
+			<li class="l" id="ud">Up-Down</li>
+		</div> 
+		<div class="maincontent">  
+			<div id="tableId"></div><br>
+			<div id="tableId2"></div><br>	
+			<div id="tableId3"></div><br>
+			<div id="wrap"> 
+			   <div id="left"> 
+					<canvas id="canvas1"></canvas>
+			   </div> 
+			   <div id="right"> 
+					<canvas id="canvas2"></canvas>
+			   </div> 
+			</div>
+			<br> <br>
+			<div style="width:45%; margin: 0 auto;">
+				<canvas id="part"></canvas>
+			</div>
+		</div>
+		<div class="footer">  
+            <h1>footer</h1>  
+        </div>
 	</div>
-    <br> <br>
 </body>
 
 </html>

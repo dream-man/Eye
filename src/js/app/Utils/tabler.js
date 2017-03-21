@@ -88,6 +88,7 @@ define(['jquery'],function ($){
 		}
 		//0: caption 设置
 		var tcap = $("<caption>" + this.name + "</caption>");
+		tcap.addClass("unselect");
 		tcap.appendTo(table);
 		
 		//1: 加表头
@@ -100,19 +101,21 @@ define(['jquery'],function ($){
 				this.rows = data[cell].length
 			}
 			var th = $("<th>" + cell + "</th>");
+			th.css("width",cell.length * 13 + "px"); //默认文字的像素大小
+			
 			//th.attr("title","点击在下可以按我" + cell + "排序哦!");
 			//为表头添加排序控制选项
 			if(this.canSortCol.length == 0 || this.canSortCol.indexOf(curCol) != -1){
 				var tselect = $("<select><option>&and;</option><option>&or;</option></select>").addClass("select").appendTo(th);
 			}
-			//th.addClass("grid");
+			th.addClass("unselect");
 			if(this.theads[this.CurSortRow-1] == cell)
 				th.css("background-color","#B2E0FF");
 			th.appendTo(trHeader);
 			curCol++;
 		}
 		//添加行删除控制的表头
-		$("<th>delete</th>").addClass("grid").appendTo(trHeader);
+		$("<th>delete</th>").addClass("unselect").appendTo(trHeader);
 		this.columns++;
 		thead.appendTo(table);
 				
@@ -120,11 +123,12 @@ define(['jquery'],function ($){
 		var tbody = $("<tbody></tbody>");
 		for(var i = 0;i < this.rows; ++i,++this.CurRow){
 			var tr = $("<tr></tr>");
-			if(i < this.MaxRows){	
+			if(i < this.MaxRows){				
 				for(var cell in data){//遍历对象属性名
-					var td = $("<td>" + data[cell][i] + "</td>");
+					var td = $("<td>" + data[cell][i] + "</td>");				
+					//td.css("width",String(data[cell][i]).length * 13 + "px"); //默认文字的像素大小
 					td.addClass("grid");
-					td.appendTo(tr);	
+					td.appendTo(tr);					
 				}
 				//添加删除控制的窗口
 				$("<td>Yes</td>").addClass("grid").css("color","red").appendTo(tr);
@@ -141,13 +145,14 @@ define(['jquery'],function ($){
 			tfoot.attr("title","点击在下有惊喜哦！");
 			$("<td>...</td>").attr("colspan",this.columns).appendTo(tfoot);
 			tfoot.appendTo(table);
-		}	
+		}		
 		tbody.appendTo(table);
 		//5: 封闭table标签
 		$(this.id).append("</table>");
 		//添加事件处理函数
 		this.click();
 		this.dblclick();
+		this.tableresize();
 	}
 	
 	//展开大表格的剩下部分(如果需要的话 this.OUTRANGE == true)
@@ -157,9 +162,10 @@ define(['jquery'],function ($){
 		var num = 0;
 		for(var i = this.CurRow;i < this.rows; ++num,++i,++this.CurRow){
 			var tr = $("<tr></tr>");
-			if(num < this.MaxRows){	
+			if(num < this.MaxRows){				
 				for(var cell in this.data){//遍历对象属性名
 					var td = $("<td>" + this.data[cell][i] + "</td>");
+					//td.css("width",String(data[cell][i].length) * 13 + "px"); //默认文字的像素大小
 					td.appendTo(tr);
 				}
 				//添加删除控制的窗口
@@ -167,7 +173,7 @@ define(['jquery'],function ($){
 			}else{
 				this.OUTRANGE = true;
 				break;
-			}	
+			}		
 			tr.appendTo(tbody);
 		}
 		tbody.appendTo(this.table);
@@ -190,6 +196,7 @@ define(['jquery'],function ($){
 			if(i < this.CurRow){
 				for(var cell in data){//遍历对象属性名
 					var td = $("<td>" + data[cell][i] + "</td>");
+					//td.css("width",String(data[cell][i].length) * 13 + "px"); //默认文字的像素大小
 					td.appendTo(tr);
 				}
 				//添加删除控制的窗口
@@ -233,8 +240,8 @@ define(['jquery'],function ($){
 					break;
 					default:
 					break;
-				}	
-			});	
+				}			
+			});			
 		});
 		
 		//点击表尾 扩展未显示的部分表格
@@ -242,11 +249,11 @@ define(['jquery'],function ($){
 			var tdArr = $(this).children();
 			tdArr.click(function(){
 				that.expandBody();
-			});	
+			});			
 		});
 		
 		$(this.id).find("table thead tr").each(function(){
-			var thArr = $(this).children();	
+			var thArr = $(this).children();			
 			thArr.click(function(){
 				console.log("cell number:" + this.cellIndex + " cell text:" + this.innerText);
 				that.CurSortRow = this.cellIndex + 1;
@@ -259,11 +266,11 @@ define(['jquery'],function ($){
 			var thArr = $(this).children();
 			var sortcell = thArr.parent();
 			var thead = sortcell.parent();
-			thArr.change(function(){	
+			thArr.change(function(){				
 				thead.each(function(){
 					var th = $(this).children();
 					th.css("background-color", "");
-				});	
+				});				
 				var text = thArr.find("option:selected").text();
 				var index = thArr.get(0).selectedIndex;
 				console.log("selected " + text + " will sort");
@@ -384,6 +391,76 @@ define(['jquery'],function ($){
 		this.init(newtableJson);
 		this.create();
 	}
+	
+	table.prototype.tableresize = function () {
+		var _document = $("table thead");
+		_document.each(function () {
+		  if (!$.tableresize) {
+			$.tableresize = {};
+		  }
+		  var _table = $(this);
+		  //设定ID
+		  var id = _table.attr("id") || "tableresize_" + (Math.random() * 1000).toFixed(0).toString();
+		  var tr = _table.find("tr").first(), ths = tr.children(), _firstth = ths.first();
+		  //设定临时变量存放对象
+		  var cobjs = $.tableresize[id] = {};
+		  cobjs._currentObj = null, cobjs._currentLeft = null;
+		  ths.mousemove(function (e) {
+			e.preventDefault();
+			var _this = $(this);
+			var left = _this.offset().left, 
+				top = _this.offset().top, 
+				width = _this.width(), 
+				height = _this.height(), 
+				right = left + width, 
+				bottom = top + height, 
+				clientX = e.clientX, 
+				clientY = e.clientY;
+			var leftside = !_firstth.is(_this) && Math.abs(left - clientX) <= 5, 
+				rightside = Math.abs(right - clientX) <= 5;
+			if (cobjs._currentLeft||clientY>top&&clientY<bottom&&(leftside||rightside)){
+			  _document.css("cursor", "e-resize");
+			  if (!cobjs._currentLeft) {
+				if (leftside) {
+				  cobjs._currentObj = _this.prev();
+				}
+				else {
+				  cobjs._currentObj = _this;
+				}
+			  }
+			}
+			else {
+			  cobjs._currentObj = null;
+			}
+		  });
+		  ths.mouseout(function (e) {
+			e.preventDefault();
+			if (!cobjs._currentLeft) {
+			  cobjs._currentObj = null;
+			  _document.css("cursor", "auto");
+			}
+		  });
+		  _document.mousedown(function (e) {
+
+			if (cobjs._currentObj) {
+			  cobjs._currentLeft = e.clientX;
+			}
+			else {
+			  cobjs._currentLeft = null;
+			}
+		  });
+		  _document.mouseup(function (e) {
+			e.preventDefault();
+			if (cobjs._currentLeft) {
+			  cobjs._currentObj.width(cobjs._currentObj.width() + (e.clientX - cobjs._currentLeft));
+			}
+			cobjs._currentObj = null;
+			cobjs._currentLeft = null;
+			_document.css("cursor", "auto");
+		  });
+		});
+	};
+	
 	
 	return{
 		table:table

@@ -131,7 +131,7 @@ require(['reader','http','tabler','draw'],function(reader,httper,tabler,drawer){
 			});
 		},
 	1000);
-	
+	*/
 	//pie 圆形图系列
 	// var CircleData = reader.readJson("/fvar/data/part.json");
 	var data2 = [
